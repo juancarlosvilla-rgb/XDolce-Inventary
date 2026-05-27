@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X Dolce - Ajustes de Perfil</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <style>
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .settings-header h1 {
+            color: var(--primary-color);
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 30px;
+        }
+        .settings-card {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 30px;
+        }
+        .profile-picture-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        .profile-picture {
+            width: 120px;
+            height: 120px;
+            background: #f0f2f5;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .profile-picture i.fa-user {
+            font-size: 40px;
+            color: #555;
+        }
+        .profile-edit-btn {
+            position: absolute;
+            bottom: -10px;
+            right: -10px;
+            background: var(--primary-color);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 2px solid #fff;
+        }
+        .settings-form-group {
+            margin-bottom: 20px;
+        }
+        .settings-form-group label {
+            display: block;
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+        .settings-form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            color: #333;
+        }
+        .settings-form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        .settings-section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .pref-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        .pref-info h4 {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        .pref-info p {
+            font-size: 12px;
+            color: #666;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #ccc;
+            color: #555;
+            padding: 12px;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s;
+        }
+        .btn-outline:hover {
+            background: #f9f9f9;
+        }
+        .security-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .member-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 600;
+            padding-top: 20px;
+            border-top: 1px dashed #eee;
+        }
+        .member-info .danger-text {
+            color: var(--danger);
+            cursor: pointer;
+        }
+        .settings-footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+        /* Dark Theme Variables */
+        body.dark-mode {
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --text-primary: #ffffff;
+            --text-secondary: #aaaaaa;
+            --border-color: #333333;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+        }
+        body.dark-mode .sidebar { background-color: var(--surface-color); border-right: 1px solid var(--border-color); }
+        body.dark-mode .topbar { background-color: var(--surface-color); border-bottom: 1px solid var(--border-color); }
+        body.dark-mode .settings-card { background-color: var(--surface-color); border: 1px solid var(--border-color); color: var(--text-primary); }
+        body.dark-mode .settings-form-input { background-color: #333; color: white; border-color: #555; }
+        body.dark-mode .settings-header h1 { color: #fff; }
+        body.dark-mode .settings-section-title, body.dark-mode .pref-info h4 { color: #fff; }
+        body.dark-mode .profile-picture { background: #333; }
+        body.dark-mode .profile-edit-btn { border-color: var(--surface-color); }
+        body.dark-mode .btn-outline { color: #ccc; border-color: #555; }
+        body.dark-mode .btn-outline:hover { background: #333; }
+
+        /* Custom Switch */
+        .switch { position: relative; display: inline-block; width: 44px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 22px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary-color); }
+        input:checked + .slider:before { transform: translateX(22px); }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div>
+                <div class="sidebar-header">
+                    <div class="sidebar-logo">
+                        <img src="https://ui-avatars.com/api/?name=X+D&background=fff&color=1a3696&bold=true" alt="Logo">
+                        <div>
+                            <h2>X Dolce</h2>
+                            <p>Operaciones de inventario</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <ul class="sidebar-menu">
+                    <li><a href="dashboard.html"><i class="fa-solid fa-box"></i> Inventario</a></li>
+                    <li><a href="pos.html"><i class="fa-solid fa-cash-register"></i> Punto de Venta</a></li>
+                    <li><a href="layaways.html"><i class="fa-solid fa-box-open"></i> Apartados</a></li>
+                    <li><a href="customers.html"><i class="fa-solid fa-users"></i> Clientes</a></li>
+                    <li><a href="history.html"><i class="fa-solid fa-clock-rotate-left"></i> Historial</a></li>
+                </ul>
+            </div>
+
+            <ul class="sidebar-menu sidebar-footer">
+                <li><a href="settings.html" class="active"><i class="fa-solid fa-gear"></i> Ajustes</a></li>
+                <li><a href="#"><i class="fa-regular fa-circle-question"></i> Soporte</a></li>
+                <li><a href="#" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Salir</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="topbar" style="border-bottom:none; padding-bottom: 0;">
+                <div class="search-bar" style="visibility:hidden;"></div>
+                <div class="topbar-actions">
+                    <button class="btn-icon"><i class="fa-regular fa-bell"></i></button>
+                    <div class="user-profile">
+                        <i class="fa-solid fa-circle-user" style="font-size: 24px; color: var(--primary-color);"></i>
+                    </div>
+                </div>
+            </header>
+
+            <div class="page-content" style="padding-top: 10px;">
+                <div class="settings-header">
+                    <h1>Ajustes de Perfil</h1>
+                </div>
+
+                <div class="settings-grid">
+                    <!-- Columna Izquierda: Perfil -->
+                    <div class="settings-card">
+                        <div class="profile-picture-container">
+                            <div class="profile-picture">
+                                <i class="fa-regular fa-user"></i>
+                                <div class="profile-edit-btn">
+                                    <i class="fa-solid fa-pen" style="font-size: 14px;"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form id="profileForm">
+                            <div class="settings-form-group">
+                                <label>Nombre Completo</label>
+                                <input type="text" id="profileName" class="settings-form-input" value="Administrador">
+                            </div>
+                            <div class="settings-form-group">
+                                <label>Correo Electrónico</label>
+                                <input type="email" id="profileEmail" class="settings-form-input" value="admin@xdolce.com">
+                            </div>
+                            <div class="settings-form-group">
+                                <label>Departamento</label>
+                                <input type="text" id="profileDept" class="settings-form-input" value="Lujo Ready-to-Wear">
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Columna Derecha: Preferencias y Seguridad -->
+                    <div>
+                        <!-- Preferencias -->
+                        <div class="settings-card" style="margin-bottom: 30px;">
+                            <div class="settings-section-title">
+                                <i class="fa-solid fa-sliders" style="color:var(--primary-color);"></i> Preferencias de la App
+                            </div>
+
+                            <div class="pref-row">
+                                <div class="pref-info">
+                                    <h4>Alertas de Stock</h4>
+                                    <p>Notificaciones push en tiempo real para niveles bajos de inventario.</p>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="pref-row">
+                                <div class="pref-info">
+                                    <h4>Tema Oscuro</h4>
+                                    <p>Cambia la interfaz a colores oscuros.</p>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="pref-row">
+                                <div class="pref-info">
+                                    <h4>Moneda / Idioma</h4>
+                                    <p>Formatos localizados para informes.</p>
+                                </div>
+                                <div>
+                                    <select class="settings-form-input" style="width: auto; padding: 8px; font-size: 13px;">
+                                        <option>Español (Colombia) - COP</option>
+                                        <option>Inglés (US) - USD</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Seguridad -->
+                        <div class="settings-card">
+                            <div class="settings-section-title">
+                                <i class="fa-solid fa-shield-halved" style="color:#d93025;"></i> Seguridad y Privacidad
+                            </div>
+
+                            <div class="security-buttons">
+                                <button class="btn-outline" onclick="openPasswordModal()">Cambiar Contraseña</button>
+                                <button class="btn-outline">Autenticación de Dos Factores</button>
+                            </div>
+
+                            <div class="member-info">
+                                <span style="color:#999;">Miembro desde Junio 2023</span>
+                                <span class="danger-text">Eliminar Cuenta</span>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-footer">
+                            <button class="btn-secondary" style="border:none; background:transparent;">Cancelar</button>
+                            <button class="btn-primary" onclick="saveAllSettings()">Guardar Cambios</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Cambio de Contraseña -->
+    <div id="passwordModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+        <div style="background:white; padding:30px; border-radius:8px; width:400px; max-width:90%; box-shadow: 0 20px 60px rgba(0,0,0,0.2);">
+            <h3 style="margin-bottom: 20px; color:var(--primary-color);"><i class="fa-solid fa-lock" style="margin-right:8px;"></i>Cambiar Contraseña</h3>
+            <div class="settings-form-group">
+                <label>Contraseña Actual</label>
+                <input type="password" id="currentPass" class="settings-form-input" placeholder="Contraseña actual">
+            </div>
+            <div class="settings-form-group">
+                <label>Nueva Contraseña</label>
+                <input type="password" id="newPass" class="settings-form-input" placeholder="Mínimo 6 caracteres">
+            </div>
+            <div class="settings-form-group">
+                <label>Confirmar Nueva Contraseña</label>
+                <input type="password" id="confirmPass" class="settings-form-input" placeholder="Repita la nueva contraseña">
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                <button type="button" class="btn-secondary" onclick="closePasswordModal()">Cancelar</button>
+                <button type="button" class="btn-primary" onclick="submitPasswordChange()">Actualizar Contraseña</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/settings.js"></script>
+</body>
+</html>

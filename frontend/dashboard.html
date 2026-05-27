@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X Dolce - Inventario</title>
+    <meta name="description" content="Sistema de gestión de inventario X Dolce — panel principal de productos y stock.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <style>
+        @keyframes slideInToast { from { transform: translateX(100px); opacity:0; } to { transform: translateX(0); opacity:1; } }
+        .bulk-bar {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            background: #eef2f9;
+            border: 1px solid #c0cce8;
+            border-radius: 6px;
+            padding: 8px 14px;
+            margin-bottom: 10px;
+        }
+        .bulk-bar.visible { display: flex; }
+        #bulkDeleteBtn {
+            display: none;
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+        #bulkDeleteBtn:hover { background: #b02a37; }
+        .data-table th:first-child, .data-table td:first-child { width: 36px; padding-right: 0; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div>
+                <div class="sidebar-header">
+                    <div class="sidebar-logo">
+                        <img src="https://ui-avatars.com/api/?name=X+D&background=fff&color=1a3696&bold=true" alt="Logo X Dolce">
+                        <div><h2>X Dolce</h2><p>Operaciones de inventario</p></div>
+                    </div>
+                </div>
+                <ul class="sidebar-menu">
+                    <li><a href="dashboard.html" class="active"><i class="fa-solid fa-box"></i> Inventario</a></li>
+                    <li><a href="pos.html"><i class="fa-solid fa-cash-register"></i> Punto de Venta</a></li>
+                    <li><a href="layaways.html"><i class="fa-solid fa-box-open"></i> Apartados</a></li>
+                    <li><a href="customers.html"><i class="fa-solid fa-users"></i> Clientes</a></li>
+                    <li><a href="history.html"><i class="fa-solid fa-clock-rotate-left"></i> Historial</a></li>
+                </ul>
+                <div class="sidebar-action">
+                    <button class="btn-primary" style="width:100%;" onclick="openEntryModal()"><i class="fa-solid fa-plus"></i> Nueva Entrada</button>
+                </div>
+            </div>
+            <ul class="sidebar-menu sidebar-footer">
+                <li><a href="settings.html"><i class="fa-solid fa-gear"></i> Ajustes</a></li>
+                <li><a href="#"><i class="fa-regular fa-circle-question"></i> Soporte</a></li>
+                <li><a href="#" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Salir</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="topbar">
+                <div class="search-bar">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar nombre de producto, SKU o categoría..." oninput="filterTable()">
+                </div>
+                <div class="topbar-actions">
+                    <button class="btn-icon"><i class="fa-regular fa-bell"></i></button>
+                    <div class="user-profile">
+                        <i class="fa-solid fa-circle-user" style="font-size:24px;color:var(--primary-color);"></i>
+                        <span id="userNameDisplay">Usuario</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <div class="page-header">
+                    <h1 class="page-title">Resumen de Inventario</h1>
+                    <div class="action-buttons">
+                        <button class="btn-secondary" onclick="exportInventory()"><i class="fa-solid fa-download"></i> Exportar CSV</button>
+                        <button class="btn-secondary" onclick="openExitModal()"><i class="fa-regular fa-square-minus"></i> Registrar Salida</button>
+                        <button class="btn-secondary" onclick="openEntryModal()"><i class="fa-solid fa-arrow-right-to-bracket"></i> Registrar Entrada</button>
+                        <button class="btn-primary" onclick="openProductModal()"><i class="fa-solid fa-plus"></i> Registrar Producto</button>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-title">SKU Total</div>
+                        <div class="stat-value" id="statTotalSku">0</div>
+                        <div class="stat-sub"><i class="fa-solid fa-box"></i> Productos registrados</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Alerta de Stock Bajo</div>
+                        <div class="stat-value text-danger" id="statLowStock">0</div>
+                        <div class="stat-sub text-danger"><i class="fa-solid fa-triangle-exclamation"></i> Acción requerida</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Capacidad de Almacén</div>
+                        <div class="stat-value">—</div>
+                        <div style="height:4px;background:#eee;border-radius:2px;margin-top:10px;">
+                            <div style="width:84%;height:100%;background:var(--primary-color);border-radius:2px;"></div>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="display:flex;flex-direction:column;justify-content:center;align-items:center;border-color:#fbe6e8;cursor:pointer;" onclick="openExitModal()">
+                        <i class="fa-solid fa-triangle-exclamation" style="font-size:24px;color:var(--danger);margin-bottom:10px;"></i>
+                        <div class="text-danger" style="font-weight:600;text-transform:uppercase;">Registrar Salida</div>
+                    </div>
+                </div>
+
+                <!-- Bulk Action Bar -->
+                <div id="bulkBar" style="display:flex;align-items:center;gap:10px;background:#eef2f9;border:1px solid #c0cce8;border-radius:6px;padding:8px 14px;margin-bottom:10px;display:none;">
+                    <span id="bulkBarLabel" style="font-size:13px;font-weight:600;color:var(--primary-color);flex:1;"></span>
+                    <button id="bulkDeleteBtn" onclick="deleteSelectedProducts()" style="display:none;">
+                        <i class="fa-solid fa-trash" style="margin-right:6px;"></i> Eliminar seleccionados
+                    </button>
+                    <button onclick="toggleSelectAll(false)" style="background:none;border:none;color:#666;font-size:13px;cursor:pointer;padding:4px 8px;">✕ Cancelar selección</button>
+                </div>
+
+                <!-- Table -->
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="width:36px;padding-right:0;">
+                                <input type="checkbox" id="selectAllCheckbox"
+                                    onchange="toggleSelectAll(this.checked)"
+                                    style="width:16px;height:16px;cursor:pointer;accent-color:var(--primary-color);"
+                                    title="Seleccionar todos">
+                            </th>
+                            <th>SKU</th>
+                            <th>Nombre del Producto</th>
+                            <th>Categoría</th>
+                            <th>Nivel de Stock</th>
+                            <th>Precio (COP)</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryTableBody"></tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Producto -->
+    <div id="productModal" class="modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:1000;align-items:center;justify-content:center;">
+        <div style="background:white;padding:30px;border-radius:10px;width:750px;max-width:95%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+            <h2 id="productModalTitle" style="margin-bottom:20px;color:var(--primary-color);">Registrar Producto</h2>
+            <form id="productForm" onsubmit="saveProduct(event)">
+                <input type="hidden" id="prodId">
+                <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;">
+                    <div>
+                        <div class="form-group" style="margin-bottom:15px;">
+                            <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Nombre del Producto *</label>
+                            <input type="text" id="prodName" class="form-input" style="width:100%;" required placeholder="Ej: Gorra Urbana Black">
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:15px;">
+                            <div>
+                                <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Categoría</label>
+                                <select id="prodCategory" class="form-input" style="width:100%;"></select>
+                            </div>
+                            <div>
+                                <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">SKU / Código *</label>
+                                <input type="text" id="prodSku" class="form-input" style="width:100%;" required placeholder="Ej: ACC-0001">
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-bottom:15px;">
+                            <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Descripción</label>
+                            <textarea id="prodDescription" class="form-input" style="width:100%;height:60px;resize:vertical;" placeholder="Descripción del producto..."></textarea>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:15px;margin-bottom:15px;">
+                            <div>
+                                <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Precio (COP) *</label>
+                                <input type="number" step="1" min="0" id="prodPrice" class="form-input" style="width:100%;" required placeholder="0">
+                            </div>
+                            <div>
+                                <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Stock Inicial</label>
+                                <input type="number" id="prodStock" class="form-input" style="width:100%;" value="0" min="0">
+                            </div>
+                            <div>
+                                <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Estado</label>
+                                <select id="prodStatus" class="form-input" style="width:100%;">
+                                    <option value="ACTIVE">Activo</option>
+                                    <option value="INACTIVE">Inactivo</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Imagen del Producto</label>
+                        <div style="border:2px dashed #ccc;padding:20px;text-align:center;border-radius:8px;background:#f9f9f9;cursor:pointer;" onclick="document.getElementById('prodImage').click()">
+                            <i class="fa-solid fa-image" id="imagePreviewIcon" style="font-size:36px;color:#ccc;margin-bottom:10px;display:block;"></i>
+                            <img id="imagePreview" src="" alt="Vista previa" style="display:none;max-width:100%;max-height:150px;margin:0 auto 10px auto;border-radius:6px;object-fit:cover;">
+                            <p style="font-size:12px;color:#888;">Clic para subir (JPG, PNG, WEBP &middot; m&aacute;x 5MB)</p>
+                            <span id="uploadStatusLabel" style="font-size:11px;font-weight:600;"></span>
+                        </div>
+                        <!-- input file FUERA del form para no interferir con el submit HTML -->
+                        <input type="hidden" id="prodImageUrl" name="imageUrl">
+                    </div>
+                </div>
+                <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;border-top:1px solid #eee;padding-top:15px;">
+                    <button type="button" class="btn-secondary" onclick="closeProductModal()">Cancelar</button>
+                    <button type="submit" class="btn-primary"><i class="fa-solid fa-save"></i> Guardar Producto</button>
+                </div>
+            </form>
+            <!-- Input file fuera del <form> para no interferir con el submit JSON -->
+            <input type="file" id="prodImage" accept="image/jpeg,image/png,image/webp" style="display:none;">
+        </div>
+    </div>
+
+    <!-- Modal Entrada -->
+    <div id="entryModal" class="modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:1000;align-items:center;justify-content:center;">
+        <div style="background:white;padding:30px;border-radius:10px;width:520px;max-width:95%;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+            <h2 style="margin-bottom:20px;color:var(--primary-color);"><i class="fa-solid fa-arrow-right-to-bracket" style="margin-right:8px;"></i>Registrar Entrada</h2>
+            <form id="entryForm" onsubmit="saveEntry(event)">
+                <div class="form-group" style="margin-bottom:15px;">
+                    <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Producto *</label>
+                    <select id="entryProduct" class="form-input" style="width:100%;" required></select>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:15px;">
+                    <div><label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Cantidad *</label>
+                    <input type="number" id="entryQuantity" class="form-input" style="width:100%;" required min="1"></div>
+                    <div><label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Fecha *</label>
+                    <input type="date" id="entryDate" class="form-input" style="width:100%;" required></div>
+                </div>
+                <div class="form-group" style="margin-bottom:15px;">
+                    <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Proveedor</label>
+                    <input type="text" id="entryProvider" class="form-input" style="width:100%;" placeholder="Nombre del proveedor">
+                </div>
+                <div class="form-group" style="margin-bottom:15px;">
+                    <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Referencia / Factura</label>
+                    <input type="text" id="entryRef" class="form-input" style="width:100%;" placeholder="Ej: FAC-0001">
+                </div>
+                <div class="form-group" style="margin-bottom:20px;">
+                    <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Observaciones</label>
+                    <textarea id="entryNotes" class="form-input" style="width:100%;height:70px;resize:vertical;"></textarea>
+                </div>
+                <div style="display:flex;justify-content:flex-end;gap:10px;border-top:1px solid #eee;padding-top:15px;">
+                    <button type="button" class="btn-secondary" onclick="closeEntryModal()">Cancelar</button>
+                    <button type="submit" class="btn-primary"><i class="fa-solid fa-check"></i> Confirmar Entrada</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Salida -->
+    <div id="exitModal" class="modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:1000;align-items:center;justify-content:center;">
+        <div style="background:white;padding:30px;border-radius:10px;width:520px;max-width:95%;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+            <h2 style="margin-bottom:20px;color:var(--danger);"><i class="fa-regular fa-square-minus" style="margin-right:8px;"></i>Registrar Salida</h2>
+            <form id="exitForm" onsubmit="saveExit(event)">
+                <div class="form-group" style="margin-bottom:6px;">
+                    <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Producto *</label>
+                    <select id="exitProduct" class="form-input" style="width:100%;" required onchange="updateExitMax()"></select>
+                </div>
+                <div style="margin-bottom:15px;"><small id="exitStockLabel" style="color:#666;font-weight:600;">Stock actual: —</small></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:15px;">
+                    <div><label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Cantidad *</label>
+                    <input type="number" id="exitQuantity" class="form-input" style="width:100%;" required min="1"></div>
+                    <div><label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Fecha *</label>
+                    <input type="date" id="exitDate" class="form-input" style="width:100%;" required></div>
+                </div>
+                <div class="form-group" style="margin-bottom:15px;">
+                    <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Cliente</label>
+                    <select id="exitCustomer" class="form-input" style="width:100%;"></select>
+                </div>
+                <div class="form-group" style="margin-bottom:15px;">
+                    <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Motivo / Referencia</label>
+                    <input type="text" id="exitRef" class="form-input" style="width:100%;" placeholder="Motivo de la salida">
+                </div>
+                <div class="form-group" style="margin-bottom:20px;">
+                    <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Observaciones</label>
+                    <textarea id="exitNotes" class="form-input" style="width:100%;height:70px;resize:vertical;"></textarea>
+                </div>
+                <div style="display:flex;justify-content:flex-end;gap:10px;border-top:1px solid #eee;padding-top:15px;">
+                    <button type="button" class="btn-secondary" onclick="closeExitModal()">Cancelar</button>
+                    <button type="submit" class="btn-primary" style="background:var(--danger);"><i class="fa-solid fa-check"></i> Registrar Salida</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script>
+        function filterTable() {
+            const q = document.getElementById('searchInput').value.toLowerCase();
+            document.querySelectorAll('#inventoryTableBody tr').forEach(tr => {
+                tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+            });
+        }
+
+        // Override updateBulkDeleteBtn to also show/hide the bulk bar
+        const _origUpdate = updateBulkDeleteBtn;
+        function updateBulkDeleteBtn() {
+            const btn = document.getElementById('bulkDeleteBtn');
+            const bar = document.getElementById('bulkBar');
+            const label = document.getElementById('bulkBarLabel');
+            if (!btn || !bar) return;
+            if (selectedProductIds.size > 0) {
+                bar.style.display = 'flex';
+                label.textContent = `${selectedProductIds.size} producto(s) seleccionado(s)`;
+                btn.style.display = 'inline-flex';
+                btn.innerHTML = `<i class="fa-solid fa-trash" style="margin-right:6px;"></i> Eliminar ${selectedProductIds.size} seleccionado${selectedProductIds.size > 1 ? 's' : ''}`;
+            } else {
+                bar.style.display = 'none';
+                btn.style.display = 'none';
+                const cb = document.getElementById('selectAllCheckbox');
+                if (cb) { cb.checked = false; cb.indeterminate = false; }
+            }
+        }
+    </script>
+</body>
+</html>

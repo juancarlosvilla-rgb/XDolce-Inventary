@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X Dolce - Punto de Venta</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/pos.css">
+    <style>
+        .pos-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            height: calc(100vh - 120px);
+        }
+        .pos-left {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+        }
+        .pos-right {
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .pos-cart-items {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+        .pos-summary {
+            background: #f8f9fa;
+            padding: 20px;
+            border-top: 1px solid #ddd;
+        }
+        .payment-methods {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .pm-btn {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background: #fff;
+            cursor: pointer;
+            text-align: center;
+            font-weight: 500;
+            color: #555;
+            transition: 0.2s;
+        }
+        .pm-btn.active {
+            background: var(--primary-color);
+            color: #fff;
+            border-color: var(--primary-color);
+        }
+        @keyframes slideInToast { from { transform: translateX(100px); opacity:0; } to { transform: translateX(0); opacity:1; } }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div>
+                <div class="sidebar-header">
+                    <div class="sidebar-logo">
+                        <img src="https://ui-avatars.com/api/?name=X+D&background=fff&color=1a3696&bold=true" alt="Logo">
+                        <div>
+                            <h2>X Dolce</h2>
+                            <p>Operaciones de inventario</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <ul class="sidebar-menu">
+                    <li><a href="dashboard.html"><i class="fa-solid fa-box"></i> Inventario</a></li>
+                    <li><a href="pos.html" class="active"><i class="fa-solid fa-cash-register"></i> PV/Caja</a></li>
+                    <li><a href="layaways.html"><i class="fa-solid fa-box-open"></i> Apartados</a></li>
+                    <li><a href="customers.html"><i class="fa-solid fa-users"></i> Clientes</a></li>
+                    <li><a href="history.html"><i class="fa-solid fa-clock-rotate-left"></i> Historial</a></li>
+                </ul>
+            </div>
+
+            <ul class="sidebar-menu sidebar-footer">
+                <li><a href="settings.html"><i class="fa-solid fa-gear"></i> Configuración</a></li>
+                <li><a href="#"><i class="fa-regular fa-circle-question"></i> Soporte</a></li>
+                <li><a href="#" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Salir</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="search-bar">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="posSearch" placeholder="Buscar producto por nombre o SKU..." oninput="searchProducts(this.value)">
+                </div>
+                <div class="topbar-actions">
+                    <button class="btn-icon"><i class="fa-regular fa-bell"></i></button>
+                    <div class="user-profile">
+                        <i class="fa-solid fa-circle-user" style="font-size: 24px; color: var(--primary-color);"></i>
+                        <span id="userNameDisplay">Usuario</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="page-content" style="padding-top: 15px;">
+                <div class="pos-grid">
+                    <!-- Products Area -->
+                    <div class="pos-left">
+                        <div class="category-pills" id="categoryPills">
+                            <div class="pill active" onclick="filterCategory(null, this)">Todos</div>
+                            <!-- Loaded via JS -->
+                        </div>
+
+                        <div class="product-grid" id="productGrid">
+                            <!-- Loaded via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Cart Area -->
+                    <div class="pos-right">
+                        <div style="padding: 15px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; background: #fafafa;">
+                            <h3 style="margin: 0; font-size: 16px;">Venta Actual</h3>
+                            <button class="btn-secondary" style="font-size: 12px; padding: 5px 10px; color: var(--danger); border-color: var(--danger); background: transparent;" onclick="clearCart()">
+                                <i class="fa-regular fa-trash-can"></i> Vaciar
+                            </button>
+                        </div>
+                        
+                        <div style="padding: 10px 15px; border-bottom: 1px solid #ddd; background: #fff;">
+                            <select id="saleCustomer" class="form-input" style="width: 100%; font-size: 13px;">
+                                <option value="">-- Consumidor Final --</option>
+                            </select>
+                        </div>
+
+                        <div class="pos-cart-items" id="cartItems">
+                            <!-- JS loaded -->
+                        </div>
+
+                        <div class="pos-summary">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px;">
+                                <span>Subtotal</span>
+                                <span id="cartSubtotal" style="font-weight: 600;">$0</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 14px;">
+                                <span>Impuesto (0%)</span>
+                                <span id="cartTax" style="font-weight: 600;">$0</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 18px; font-weight: 700; color: var(--primary-color);">
+                                <span>Total</span>
+                                <span id="cartTotal">$0</span>
+                            </div>
+
+                            <label style="font-size: 11px; font-weight: 600; color: #666; margin-bottom: 5px; display: block;">MÉTODO DE PAGO</label>
+                            <div class="payment-methods" id="paymentMethods">
+                                <div class="pm-btn active" data-method="EFECTIVO" onclick="selectPaymentMethod(this)">Efectivo</div>
+                                <div class="pm-btn" data-method="NEQUI" onclick="selectPaymentMethod(this)">Nequi</div>
+                                <div class="pm-btn" data-method="DAVIPLATA" onclick="selectPaymentMethod(this)">Daviplata</div>
+                                <div class="pm-btn" data-method="TRANSFERENCIA" onclick="selectPaymentMethod(this)">Transferencia</div>
+                                <div class="pm-btn" data-method="TARJETA" onclick="selectPaymentMethod(this)">Tarjeta</div>
+                            </div>
+                            
+                            <input type="text" id="saleNotes" class="form-input" placeholder="Notas adicionales..." style="width: 100%; margin-bottom: 15px; font-size: 13px;">
+
+                            <button class="btn-primary" style="width: 100%; font-size: 16px; padding: 12px;" onclick="checkout()">
+                                <i class="fa-solid fa-cash-register" style="margin-right: 8px;"></i> Procesar Venta
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/pos.js"></script>
+</body>
+</html>

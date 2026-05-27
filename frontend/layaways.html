@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X Dolce - Gestión de Apartados</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <style>
+        .layaway-container {
+            display: flex;
+            gap: 20px;
+        }
+        .layaway-main {
+            flex: 3;
+        }
+        .layaway-side {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .payment-panel {
+            background: #f4f5f8;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        .payment-panel h4 {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+        .btn-group button {
+            flex: 1;
+            padding: 8px;
+            background: #fff;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-group button.active {
+            background: var(--primary-color);
+            color: #fff;
+        }
+        .admin-shortcuts {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        .shortcut-btn {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background: #fafafa;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .shortcut-btn:hover {
+            background: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div>
+                <div class="sidebar-header">
+                    <div class="sidebar-logo">
+                        <img src="https://ui-avatars.com/api/?name=X+D&background=fff&color=1a3696&bold=true" alt="Logo">
+                        <div>
+                            <h2>X Dolce</h2>
+                            <p>Operaciones de inventario</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <ul class="sidebar-menu">
+                    <li><a href="dashboard.html"><i class="fa-solid fa-box"></i> Inventario</a></li>
+                    <li><a href="pos.html"><i class="fa-solid fa-cash-register"></i> Punto de Venta</a></li>
+                    <li><a href="layaways.html" class="active"><i class="fa-solid fa-box-open"></i> Apartados</a></li>
+                    <li><a href="customers.html"><i class="fa-solid fa-users"></i> Clientes</a></li>
+                    <li><a href="history.html"><i class="fa-solid fa-clock-rotate-left"></i> Historial</a></li>
+                </ul>
+            </div>
+
+            <ul class="sidebar-menu sidebar-footer">
+                <li><a href="settings.html"><i class="fa-solid fa-gear"></i> Ajustes</a></li>
+                <li><a href="#"><i class="fa-regular fa-circle-question"></i> Soporte</a></li>
+                <li><a href="#" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Salir</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="search-bar">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" placeholder="Buscar apartados o clientes...">
+                </div>
+                <div class="topbar-actions">
+                    <button class="btn-icon"><i class="fa-regular fa-bell"></i></button>
+                    <div class="user-profile">
+                        <i class="fa-solid fa-circle-user" style="font-size: 24px; color: var(--primary-color);"></i>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="page-content">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Gestión de Apartados</h1>
+                        <p style="color: var(--text-muted); font-size: 14px;">Rastrea y procesa ventas con pagos parciales.</p>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn-secondary" onclick="window.location.href='customers.html'"><i class="fa-solid fa-user-plus"></i> Gestionar Clientes</button>
+                        <button class="btn-primary" onclick="openLayawayModal()"><i class="fa-solid fa-cart-plus"></i> Crear Apartado</button>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="stat-card" style="display:flex; align-items:center; gap: 15px;">
+                        <div style="background:#eef2f9; color:var(--primary-color); padding:15px; border-radius:8px;">
+                            <i class="fa-solid fa-clipboard-list" style="font-size:24px;"></i>
+                        </div>
+                        <div>
+                            <div class="stat-title">APARTADOS ACTIVOS</div>
+                            <div class="stat-value" id="statActive">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="display:flex; align-items:center; gap: 15px;">
+                        <div style="background:#eef2f9; color:var(--primary-color); padding:15px; border-radius:8px;">
+                            <i class="fa-solid fa-money-bill-wave" style="font-size:24px;"></i>
+                        </div>
+                        <div>
+                            <div class="stat-title">SALDO TOTAL</div>
+                            <div class="stat-value" id="statBalance">$0.00</div>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="display:flex; align-items:center; gap: 15px;">
+                        <div style="background:#fbe6e8; color:var(--danger); padding:15px; border-radius:8px;">
+                            <i class="fa-regular fa-calendar-xmark" style="font-size:24px;"></i>
+                        </div>
+                        <div>
+                            <div class="stat-title">EXPIRADOS HOY</div>
+                            <div class="stat-value text-danger" id="statExpired">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="layaway-container">
+                    <div class="layaway-main">
+                        <div style="background:var(--white); border:1px solid var(--border-color); border-radius:8px;">
+                            <div style="padding:15px 20px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+                                <h3 style="font-size:16px;">Acuerdos Activos</h3>
+                                <div style="color:var(--text-muted); cursor:pointer;"><i class="fa-solid fa-filter"></i> <i class="fa-solid fa-download" style="margin-left:10px;"></i></div>
+                            </div>
+                            <table class="data-table" style="border:none; box-shadow:none;">
+                                <thead>
+                                    <tr>
+                                        <th>CLIENTE</th>
+                                        <th>PRODUCTO</th>
+                                        <th>TOTAL</th>
+                                        <th>PAGADO</th>
+                                        <th>SALDO</th>
+                                        <th>VENCIMIENTO</th>
+                                        <th>ESTADO</th>
+                                        <th>ACCIONES</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="layawayTableBody">
+                                    <!-- JS populated -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="layaway-side">
+                        <div class="payment-panel">
+                            <h4><i class="fa-solid fa-money-bill-1-wave" style="color:var(--primary-color);"></i> Pago Rápido</h4>
+                            
+                            <label style="font-size:11px; font-weight:600; color:#666;">SELECCIONAR APARTADO</label>
+                            <select class="form-control" id="layawaySelect">
+                                <option value="">Seleccione...</option>
+                            </select>
+
+                            <label style="font-size:11px; font-weight:600; color:#666;">MONTO A PAGAR</label>
+                            <input type="number" class="form-control" id="paymentAmount" placeholder="$ 0.00">
+
+                            <label style="font-size:11px; font-weight:600; color:#666;">MÉTODO DE PAGO</label>
+                            <div class="btn-group">
+                                <button class="active">Efectivo</button>
+                                <button>Tarjeta</button>
+                            </div>
+
+                            <button class="btn-primary" style="width:100%;" onclick="registerPayment()">Registrar Pago</button>
+                        </div>
+
+                        <div class="admin-shortcuts">
+                            <h4 style="margin-bottom:15px; font-size:12px; color:#666; text-transform:uppercase;">Atajos de Administrador</h4>
+                            <div class="shortcut-btn">
+                                <i class="fa-solid fa-print" style="color:#999; font-size:20px;"></i>
+                                <div>
+                                    <div style="font-size:13px; font-weight:600;">Imprimir Reporte</div>
+                                    <div style="font-size:12px; color:#666;">Diario</div>
+                                </div>
+                            </div>
+                            <div class="shortcut-btn">
+                                <i class="fa-solid fa-list-check" style="color:#999; font-size:20px;"></i>
+                                <div>
+                                    <div style="font-size:13px; font-weight:600;">Configuración de</div>
+                                    <div style="font-size:12px; color:#666;">Políticas</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Crear Apartado -->
+    <div id="layawayModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.55); z-index:1000; align-items:center; justify-content:center;">
+        <div style="background:white; padding:30px; border-radius:10px; width:620px; max-width:95%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+            <h2 id="layawayModalTitle" style="margin-bottom: 20px; color:var(--primary-color);">Crear Apartado</h2>
+            <form id="layawayForm" onsubmit="saveLayaway(event)">
+                <input type="hidden" id="editLayawayId">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Cliente *</label>
+                        <select id="newLayawayCustomer" class="form-input" style="width: 100%;" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Producto *</label>
+                        <select id="newLayawayProduct" class="form-input" style="width: 100%;" required onchange="updateLayawayPrice()"></select>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Cantidad *</label>
+                        <input type="number" id="newLayawayQuantity" class="form-input" style="width: 100%;" required min="1" value="1" oninput="updateLayawayPrice()">
+                    </div>
+                    <div class="form-group">
+                        <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Total (COP)</label>
+                        <input type="number" step="1" id="newLayawayTotal" class="form-input" style="width: 100%;" required readonly>
+                    </div>
+                    <div class="form-group">
+                        <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Abono Inicial (COP) *</label>
+                        <input type="number" step="1" id="newLayawayAbono" class="form-input" style="width: 100%;" required min="0" value="0">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Fecha de Vencimiento *</label>
+                    <input type="date" id="newLayawayDate" class="form-input" style="width: 100%;" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px;">Observaciones</label>
+                    <textarea id="newLayawayNotes" class="form-input" style="width:100%; height:60px; resize:vertical;"></textarea>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px; border-top:1px solid #eee; padding-top:15px;">
+                    <button type="button" class="btn-secondary" onclick="closeLayawayModal()">Cancelar</button>
+                    <button type="submit" class="btn-primary"><i class="fa-solid fa-check"></i> Confirmar Apartado</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/layaways.js"></script>
+</body>
+</html>
