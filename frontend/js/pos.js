@@ -57,7 +57,7 @@ function renderProducts(products) {
     }
 
     available.forEach(p => {
-        let img = p.imageUrl && p.imageUrl.trim() !== '' ? p.imageUrl : 'https://via.placeholder.com/150';
+        let img = p.imageUrl && p.imageUrl.trim() !== '' ? p.imageUrl : 'assets/images/placeholder.png';
         grid.innerHTML += `
             <div class="product-card" onclick="addToCart(${p.id})">
                 <img src="${img}" alt="${p.name}">
@@ -148,7 +148,7 @@ function updateCartUI() {
     currentCart.forEach(item => {
         const itemTotal = item.product.price * item.quantity;
         subtotal += itemTotal;
-        let img = item.product.imageUrl && item.product.imageUrl.trim() !== '' ? item.product.imageUrl : 'https://via.placeholder.com/40';
+        let img = item.product.imageUrl && item.product.imageUrl.trim() !== '' ? item.product.imageUrl : 'assets/images/placeholder.png';
 
         cartContainer.innerHTML += `
             <div class="cart-item">

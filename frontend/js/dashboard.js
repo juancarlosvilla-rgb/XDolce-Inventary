@@ -236,7 +236,6 @@ document.getElementById('prodImage').addEventListener('change', async function()
         return;
     }
 
-    // Preview inmediata con FileReader (no depende del server)
     const reader = new FileReader();
     reader.onload = e => {
         const preview = document.getElementById('imagePreview');
@@ -244,37 +243,18 @@ document.getElementById('prodImage').addEventListener('change', async function()
         preview.src = e.target.result;
         preview.style.display = 'block';
         icon.style.display = 'none';
+        
+        // Guardar la imagen en Base64 directamente en el campo URL
+        document.getElementById('prodImageUrl').value = e.target.result;
+        
+        const uploadLabel = document.getElementById('uploadStatusLabel');
+        if (uploadLabel) { 
+            uploadLabel.textContent = '✅ Imagen lista para guardar en Base de Datos'; 
+            uploadLabel.style.color = '#28a745'; 
+        }
+        showToast('Imagen cargada correctamente', 'success');
     };
     reader.readAsDataURL(file);
-
-    // Bloquear botón guardar mientras sube
-    const saveBtn = document.querySelector('#productForm button[type="submit"]');
-    const uploadLabel = document.getElementById('uploadStatusLabel');
-    if (saveBtn) { saveBtn.disabled = true; saveBtn.style.opacity = '0.6'; }
-    if (uploadLabel) { uploadLabel.textContent = '⏳ Subiendo imagen...'; uploadLabel.style.color = '#888'; }
-
-    const formData = new FormData();
-    formData.append('file', file);
-    try {
-        const res = await fetch('http://localhost:8080/api/upload', { method: 'POST', body: formData });
-        const data = await res.json();
-        if (res.ok && data.url) {
-            document.getElementById('prodImageUrl').value = 'http://localhost:8080' + data.url;
-            if (uploadLabel) { uploadLabel.textContent = '✅ Imagen lista'; uploadLabel.style.color = '#28a745'; }
-            showToast('Imagen subida correctamente', 'success');
-        } else {
-            document.getElementById('prodImageUrl').value = '';
-            if (uploadLabel) { uploadLabel.textContent = '❌ Error al subir imagen'; uploadLabel.style.color = '#dc3545'; }
-            showToast(data.error || 'Error al subir imagen', 'error');
-        }
-    } catch(e) {
-        document.getElementById('prodImageUrl').value = '';
-        if (uploadLabel) { uploadLabel.textContent = '❌ Sin conexión con el servidor'; uploadLabel.style.color = '#dc3545'; }
-        showToast('No se pudo conectar al servidor para subir la imagen.', 'error');
-    } finally {
-        // Re-habilitar botón guardar siempre
-        if (saveBtn) { saveBtn.disabled = false; saveBtn.style.opacity = '1'; }
-    }
 });
 
 async function saveProduct(e) {

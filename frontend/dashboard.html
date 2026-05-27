@@ -208,7 +208,10 @@
                             <span id="uploadStatusLabel" style="font-size:11px;font-weight:600;"></span>
                         </div>
                         <!-- input file FUERA del form para no interferir con el submit HTML -->
-                        <input type="hidden" id="prodImageUrl" name="imageUrl">
+                        <div style="margin-top:10px;">
+                            <label style="display:block;font-size:11px;color:#777;margin-bottom:4px;font-weight:500;">O pega una URL de internet:</label>
+                            <input type="url" id="prodImageUrl" class="form-input" style="width:100%;font-size:12px;padding:6px 10px;" placeholder="https://ejemplo.com/foto.jpg" oninput="const val = this.value.trim(); const prev = document.getElementById('imagePreview'); const icon = document.getElementById('imagePreviewIcon'); if(val) { prev.src = val; prev.style.display = 'block'; icon.style.display = 'none'; } else { prev.style.display = 'none'; icon.style.display = 'block'; }">
+                        </div>
                     </div>
                 </div>
                 <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;border-top:1px solid #eee;padding-top:15px;">
