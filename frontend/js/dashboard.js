@@ -34,7 +34,9 @@ async function loadDashboardData() {
 
 function renderInventoryTable(data) {
     const tableBody = document.getElementById('inventoryTableBody');
+    const gridBody = document.getElementById('gridViewContainer');
     tableBody.innerHTML = '';
+    gridBody.innerHTML = '';
     selectedProductIds.clear();
     updateBulkDeleteBtn();
 
@@ -43,6 +45,7 @@ function renderInventoryTable(data) {
             <i class="fa-solid fa-box-open" style="font-size:32px;margin-bottom:10px;display:block;"></i>
             No hay productos registrados. Haz clic en "Registrar Producto" para comenzar.
         </td></tr>`;
+        gridBody.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:40px; color:#999;">No hay productos registrados.</div>`;
         return;
     }
 
@@ -79,7 +82,52 @@ function renderInventoryTable(data) {
             </td>
         `;
         tableBody.appendChild(tr);
+
+        // Build Grid Card
+        const imgUrlGrid = p.imageUrl && p.imageUrl.trim() !== '' ? p.imageUrl : 'assets/images/placeholder.png';
+        const card = document.createElement('div');
+        card.className = 'grid-card';
+        card.innerHTML = `
+            <span class="grid-card-badge" style="color: ${p.stockLevel <= 10 ? 'var(--danger)' : '#333'};">${p.stockLevel} un.</span>
+            <img src="${imgUrlGrid}" alt="${p.name}" class="grid-card-img">
+            <div class="grid-card-overlay">
+                <div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.name}</div>
+                <div style="font-size:12px; font-weight:normal; opacity:0.9; margin-top:2px;">${formatCOP(p.price)}</div>
+            </div>
+            <div class="grid-card-actions">
+                <button onclick="editProduct(${p.id})" title="Editar" style="color:var(--primary-color);"><i class="fa-solid fa-pen"></i></button>
+                <button onclick="deleteProduct(${p.id})" title="Eliminar" style="color:var(--danger);"><i class="fa-solid fa-trash"></i></button>
+            </div>
+        `;
+        gridBody.appendChild(card);
     });
+}
+
+function toggleView(view) {
+    const listBtn = document.getElementById('btnListView');
+    const gridBtn = document.getElementById('btnGridView');
+    const listCont = document.getElementById('listViewContainer');
+    const gridCont = document.getElementById('gridViewContainer');
+
+    if (view === 'grid') {
+        listCont.style.display = 'none';
+        gridCont.style.display = 'grid';
+        gridBtn.style.background = 'white';
+        gridBtn.style.color = 'var(--primary-color)';
+        gridBtn.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+        listBtn.style.background = 'transparent';
+        listBtn.style.color = '#666';
+        listBtn.style.boxShadow = 'none';
+    } else {
+        listCont.style.display = 'block';
+        gridCont.style.display = 'none';
+        listBtn.style.background = 'white';
+        listBtn.style.color = 'var(--primary-color)';
+        listBtn.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+        gridBtn.style.background = 'transparent';
+        gridBtn.style.color = '#666';
+        gridBtn.style.boxShadow = 'none';
+    }
 }
 
 function updateDashboardStats(data) {
@@ -236,7 +284,6 @@ document.getElementById('prodImage').addEventListener('change', async function()
         return;
     }
 
-    // Preview inmediata con FileReader (no depende del server)
     const reader = new FileReader();
     reader.onload = e => {
         const preview = document.getElementById('imagePreview');
@@ -244,46 +291,46 @@ document.getElementById('prodImage').addEventListener('change', async function()
         preview.src = e.target.result;
         preview.style.display = 'block';
         icon.style.display = 'none';
+        
+        // Guardar la imagen en Base64 directamente en el campo URL
+        document.getElementById('prodImageUrl').value = e.target.result;
+        
+        const uploadLabel = document.getElementById('uploadStatusLabel');
+        if (uploadLabel) { 
+            uploadLabel.textContent = '✅ Imagen lista para guardar en Base de Datos'; 
+            uploadLabel.style.color = '#28a745'; 
+        }
+        showToast('Imagen cargada correctamente', 'success');
     };
     reader.readAsDataURL(file);
-
-    // Bloquear botón guardar mientras sube
-    const saveBtn = document.querySelector('#productForm button[type="submit"]');
-    const uploadLabel = document.getElementById('uploadStatusLabel');
-    if (saveBtn) { saveBtn.disabled = true; saveBtn.style.opacity = '0.6'; }
-    if (uploadLabel) { uploadLabel.textContent = '⏳ Subiendo imagen...'; uploadLabel.style.color = '#888'; }
-
-    const formData = new FormData();
-    formData.append('file', file);
-    try {
-        const res = await fetch('http://localhost:8080/api/upload', { method: 'POST', body: formData });
-        const data = await res.json();
-        if (res.ok && data.url) {
-            document.getElementById('prodImageUrl').value = 'http://localhost:8080' + data.url;
-            if (uploadLabel) { uploadLabel.textContent = '✅ Imagen lista'; uploadLabel.style.color = '#28a745'; }
-            showToast('Imagen subida correctamente', 'success');
-        } else {
-            document.getElementById('prodImageUrl').value = '';
-            if (uploadLabel) { uploadLabel.textContent = '❌ Error al subir imagen'; uploadLabel.style.color = '#dc3545'; }
-            showToast(data.error || 'Error al subir imagen', 'error');
-        }
-    } catch(e) {
-        document.getElementById('prodImageUrl').value = '';
-        if (uploadLabel) { uploadLabel.textContent = '❌ Sin conexión con el servidor'; uploadLabel.style.color = '#dc3545'; }
-        showToast('No se pudo conectar al servidor para subir la imagen.', 'error');
-    } finally {
-        // Re-habilitar botón guardar siempre
-        if (saveBtn) { saveBtn.disabled = false; saveBtn.style.opacity = '1'; }
-    }
 });
 
 async function saveProduct(e) {
     e.preventDefault();
     const id = document.getElementById('prodId').value;
+    const skuVal = document.getElementById('prodSku').value.trim();
+    
+    // Validación de SKU único (evita IDs duplicados)
+    if (!id) {
+        // Es un registro nuevo
+        const exists = productsData.find(p => p.sku.toLowerCase() === skuVal.toLowerCase());
+        if (exists) {
+            showToast(`¡Error! Ya existe un producto con el SKU/Código "${skuVal}".`, 'error');
+            return;
+        }
+    } else {
+        // Es una edición
+        const exists = productsData.find(p => p.sku.toLowerCase() === skuVal.toLowerCase() && p.id != id);
+        if (exists) {
+            showToast(`¡Error! Ya existe OTRO producto con el SKU/Código "${skuVal}".`, 'error');
+            return;
+        }
+    }
+
     const catId = document.getElementById('prodCategory').value;
     const payload = {
         name: document.getElementById('prodName').value.trim(),
-        sku: document.getElementById('prodSku').value.trim(),
+        sku: skuVal,
         description: document.getElementById('prodDescription').value.trim(),
         price: parseFloat(document.getElementById('prodPrice').value),
         stockLevel: parseInt(document.getElementById('prodStock').value) || 0,

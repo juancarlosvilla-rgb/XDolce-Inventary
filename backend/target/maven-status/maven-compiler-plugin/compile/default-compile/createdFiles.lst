@@ -18,7 +18,6 @@ com\xdolce\inventory\model\User.class
 com\xdolce\inventory\controller\SaleController.class
 com\xdolce\inventory\model\InventoryMovement.class
 com\xdolce\inventory\model\Layaway.class
-com\xdolce\inventory\controller\SaleRequest.class
 com\xdolce\inventory\dto\LoginRequest.class
 com\xdolce\inventory\controller\FileUploadController.class
 com\xdolce\inventory\dto\ApiResponse.class

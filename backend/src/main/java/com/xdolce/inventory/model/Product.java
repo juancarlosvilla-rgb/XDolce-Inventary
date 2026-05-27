@@ -30,7 +30,7 @@ public class Product {
     @Column(nullable = false)
     private BigDecimal price;
 
-    @Column(name = "image_url")
+    @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl;
 
     @Column(nullable = false)
