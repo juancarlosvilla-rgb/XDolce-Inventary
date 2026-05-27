@@ -34,7 +34,9 @@ async function loadDashboardData() {
 
 function renderInventoryTable(data) {
     const tableBody = document.getElementById('inventoryTableBody');
+    const gridBody = document.getElementById('gridViewContainer');
     tableBody.innerHTML = '';
+    gridBody.innerHTML = '';
     selectedProductIds.clear();
     updateBulkDeleteBtn();
 
@@ -43,6 +45,7 @@ function renderInventoryTable(data) {
             <i class="fa-solid fa-box-open" style="font-size:32px;margin-bottom:10px;display:block;"></i>
             No hay productos registrados. Haz clic en "Registrar Producto" para comenzar.
         </td></tr>`;
+        gridBody.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:40px; color:#999;">No hay productos registrados.</div>`;
         return;
     }
 
@@ -79,7 +82,52 @@ function renderInventoryTable(data) {
             </td>
         `;
         tableBody.appendChild(tr);
+
+        // Build Grid Card
+        const imgUrlGrid = p.imageUrl && p.imageUrl.trim() !== '' ? p.imageUrl : 'assets/images/placeholder.png';
+        const card = document.createElement('div');
+        card.className = 'grid-card';
+        card.innerHTML = `
+            <span class="grid-card-badge" style="color: ${p.stockLevel <= 10 ? 'var(--danger)' : '#333'};">${p.stockLevel} un.</span>
+            <img src="${imgUrlGrid}" alt="${p.name}" class="grid-card-img">
+            <div class="grid-card-overlay">
+                <div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.name}</div>
+                <div style="font-size:12px; font-weight:normal; opacity:0.9; margin-top:2px;">${formatCOP(p.price)}</div>
+            </div>
+            <div class="grid-card-actions">
+                <button onclick="editProduct(${p.id})" title="Editar" style="color:var(--primary-color);"><i class="fa-solid fa-pen"></i></button>
+                <button onclick="deleteProduct(${p.id})" title="Eliminar" style="color:var(--danger);"><i class="fa-solid fa-trash"></i></button>
+            </div>
+        `;
+        gridBody.appendChild(card);
     });
+}
+
+function toggleView(view) {
+    const listBtn = document.getElementById('btnListView');
+    const gridBtn = document.getElementById('btnGridView');
+    const listCont = document.getElementById('listViewContainer');
+    const gridCont = document.getElementById('gridViewContainer');
+
+    if (view === 'grid') {
+        listCont.style.display = 'none';
+        gridCont.style.display = 'grid';
+        gridBtn.style.background = 'white';
+        gridBtn.style.color = 'var(--primary-color)';
+        gridBtn.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+        listBtn.style.background = 'transparent';
+        listBtn.style.color = '#666';
+        listBtn.style.boxShadow = 'none';
+    } else {
+        listCont.style.display = 'block';
+        gridCont.style.display = 'none';
+        listBtn.style.background = 'white';
+        listBtn.style.color = 'var(--primary-color)';
+        listBtn.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+        gridBtn.style.background = 'transparent';
+        gridBtn.style.color = '#666';
+        gridBtn.style.boxShadow = 'none';
+    }
 }
 
 function updateDashboardStats(data) {

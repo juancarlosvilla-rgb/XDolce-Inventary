@@ -38,6 +38,81 @@
         }
         #bulkDeleteBtn:hover { background: #b02a37; }
         .data-table th:first-child, .data-table td:first-child { width: 36px; padding-right: 0; }
+        
+        /* Grid View Styles */
+        .grid-view {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+        }
+        .grid-card {
+            background: white;
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .grid-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .grid-card-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background: #f0f2f5;
+            display: block;
+        }
+        .grid-card-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.65);
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+            backdrop-filter: blur(4px);
+        }
+        .grid-card-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: rgba(255,255,255,0.9);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .grid-card-actions {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            display: flex;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .grid-card:hover .grid-card-actions {
+            opacity: 1;
+        }
+        .grid-card-actions button {
+            background: white;
+            border: none;
+            border-radius: 4px;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .grid-card-actions button:hover { background: #f0f2f5; }
     </style>
 </head>
 <body>
@@ -131,8 +206,18 @@
                     <button onclick="toggleSelectAll(false)" style="background:none;border:none;color:#666;font-size:13px;cursor:pointer;padding:4px 8px;">✕ Cancelar selección</button>
                 </div>
 
-                <!-- Table -->
-                <table class="data-table">
+                <!-- View Toggle -->
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+                    <h3 style="font-size:16px; margin:0; color:#333;">Listado de Productos</h3>
+                    <div style="display:flex; background:#eef2f9; border-radius:6px; padding:4px;">
+                        <button id="btnListView" onclick="toggleView('list')" style="padding:6px 12px; border-radius:4px; font-size:14px; border:none; cursor:pointer; background:white; box-shadow:0 1px 3px rgba(0,0,0,0.1); color:var(--primary-color);"><i class="fa-solid fa-list"></i></button>
+                        <button id="btnGridView" onclick="toggleView('grid')" style="padding:6px 12px; border-radius:4px; font-size:14px; border:none; cursor:pointer; background:transparent; color:#666;"><i class="fa-solid fa-border-all"></i></button>
+                    </div>
+                </div>
+
+                <!-- Table Container -->
+                <div id="listViewContainer">
+                    <table class="data-table">
                     <thead>
                         <tr>
                             <th style="width:36px;padding-right:0;">
@@ -151,6 +236,10 @@
                     </thead>
                     <tbody id="inventoryTableBody"></tbody>
                 </table>
+                </div>
+
+                <!-- Grid Container -->
+                <div id="gridViewContainer" class="grid-view" style="display:none;"></div>
             </div>
         </main>
     </div>
