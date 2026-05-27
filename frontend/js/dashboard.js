@@ -132,7 +132,9 @@ function toggleView(view) {
 
 function updateDashboardStats(data) {
     const totalSku = data.length;
-    const lowStockCount = data.filter(p => p.stockLevel <= 10).length;
+    const lowStockProducts = data.filter(p => p.stockLevel <= 10);
+    const lowStockCount = lowStockProducts.length;
+    
     document.getElementById('statTotalSku').textContent = totalSku;
     document.getElementById('statLowStock').textContent = lowStockCount;
 }
@@ -442,14 +444,22 @@ async function saveExit(e) {
 }
 
 function exportInventory() {
-    let csv = 'SKU,Nombre,Categoria,Stock,Precio COP\n';
+    // Agregar BOM (\uFEFF) para que Excel reconozca el formato UTF-8 (acentos y ñ)
+    let csv = '\uFEFF';
+    // Usar punto y coma (;) como separador para Excel en regiones latinas/europeas
+    csv += 'SKU;Nombre;Categoria;Stock;Precio (COP)\n';
+    
     productsData.forEach(p => {
-        csv += `"${p.sku}","${p.name}","${p.category ? p.category.name : 'N/A'}","${p.stockLevel}","${formatCOP(p.price)}"\n`;
+        // En Excel es mejor usar el número crudo para el precio y no el formateado con $.
+        csv += `"${p.sku}";"${p.name}";"${p.category ? p.category.name : 'N/A'}";"${p.stockLevel}";"${p.price}"\n`;
     });
+    
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = 'inventario_xdolce.csv'; a.click();
+    a.href = url; 
+    a.download = 'inventario_xdolce.csv'; 
+    a.click();
     window.URL.revokeObjectURL(url);
 }
 

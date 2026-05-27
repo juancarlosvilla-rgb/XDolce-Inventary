@@ -35,6 +35,14 @@ public class AuthController {
         if (userRepository.findByUsername(newUser.getUsername()).isPresent()) {
             return ResponseEntity.badRequest().body(new ApiResponse<>(false, "El nombre de usuario ya existe", null));
         }
+        
+        // Si no hay usuarios en la DB, el primero será ADMIN. Los demás serán USER.
+        if (userRepository.count() == 0) {
+            newUser.setRole("ADMIN");
+        } else {
+            newUser.setRole("USER");
+        }
+        
         User savedUser = userRepository.save(newUser);
         return ResponseEntity.ok(new ApiResponse<>(true, "Registro exitoso", savedUser));
     }

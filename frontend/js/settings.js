@@ -4,12 +4,26 @@ document.addEventListener('DOMContentLoaded', () => {
     if (user) {
         document.getElementById('profileName').value = user.fullName || user.name || '';
         document.getElementById('profileEmail').value = user.email || '';
+        
+        // Esconder eliminar cuenta para admins
+        if (user.role === 'ADMIN') {
+            const deleteBtn = document.getElementById('deleteAccountBtn');
+            if (deleteBtn) deleteBtn.style.display = 'none';
+        }
     }
 
     // Load theme preference
     if (localStorage.getItem('darkMode') === 'true') {
         document.body.classList.add('dark-mode');
         document.getElementById('themeToggle').checked = true;
+    }
+    
+    // Load stock alert preference
+    if (localStorage.getItem('stockAlertsEnabled') !== 'false') {
+        // default true
+        document.getElementById('stockAlertToggle').checked = true;
+    } else {
+        document.getElementById('stockAlertToggle').checked = false;
     }
 });
 
@@ -21,6 +35,17 @@ function toggleTheme() {
     } else {
         document.body.classList.remove('dark-mode');
         localStorage.setItem('darkMode', 'false');
+    }
+}
+
+function toggleStockAlerts() {
+    const isEnabled = document.getElementById('stockAlertToggle').checked;
+    if (isEnabled) {
+        localStorage.setItem('stockAlertsEnabled', 'true');
+        showToast('Alertas de stock activadas', 'success');
+    } else {
+        localStorage.setItem('stockAlertsEnabled', 'false');
+        showToast('Alertas de stock desactivadas', 'success');
     }
 }
 
