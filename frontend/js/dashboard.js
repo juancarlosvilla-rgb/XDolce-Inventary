@@ -308,10 +308,29 @@ document.getElementById('prodImage').addEventListener('change', async function()
 async function saveProduct(e) {
     e.preventDefault();
     const id = document.getElementById('prodId').value;
+    const skuVal = document.getElementById('prodSku').value.trim();
+    
+    // Validación de SKU único (evita IDs duplicados)
+    if (!id) {
+        // Es un registro nuevo
+        const exists = productsData.find(p => p.sku.toLowerCase() === skuVal.toLowerCase());
+        if (exists) {
+            showToast(`¡Error! Ya existe un producto con el SKU/Código "${skuVal}".`, 'error');
+            return;
+        }
+    } else {
+        // Es una edición
+        const exists = productsData.find(p => p.sku.toLowerCase() === skuVal.toLowerCase() && p.id != id);
+        if (exists) {
+            showToast(`¡Error! Ya existe OTRO producto con el SKU/Código "${skuVal}".`, 'error');
+            return;
+        }
+    }
+
     const catId = document.getElementById('prodCategory').value;
     const payload = {
         name: document.getElementById('prodName').value.trim(),
-        sku: document.getElementById('prodSku').value.trim(),
+        sku: skuVal,
         description: document.getElementById('prodDescription').value.trim(),
         price: parseFloat(document.getElementById('prodPrice').value),
         stockLevel: parseInt(document.getElementById('prodStock').value) || 0,
